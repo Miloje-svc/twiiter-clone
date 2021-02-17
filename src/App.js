@@ -1,25 +1,41 @@
-import logo from './logo.svg';
-import './App.css';
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useSelector, useDispatch } from 'react-redux'
+import ROUTES, { ProtectedRoute } from './routes'
+import { Switch, Route } from 'react-router-dom'
+import { Home, LogIn } from './pages'
+import { GlobalStyle } from './assets'
+import { useEffect } from 'react'
+import { TYPES } from './state'
+import { auth } from './firebase'
 
-function App() {
+const App = () => {
+  const user = useSelector(state => state.user)
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    auth.onAuthStateChanged(authUser => {
+      if (authUser) {
+        dispatch({
+          type: TYPES.USER,
+          user: authUser
+        })
+      } else {
+        dispatch({ type: TYPES.NO_USER })
+      }
+    })
+  }, [])
+
+  console.log(user)
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <>
+      <Switch>
+        <Route exact path={ROUTES.LOGIN} component={LogIn} />
+        <ProtectedRoute exact valid={true} path={ROUTES.HOME} component={Home} />
+      </Switch>
+      <GlobalStyle />
+    </>
+  )
 }
 
-export default App;
+export default App
